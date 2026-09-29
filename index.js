@@ -1,5 +1,5 @@
 import { buildPrompt, recentMessages, unchanged } from './prompt.js';
-import { requestReply, canRegenerate, isGenerationActive, isRealGenerationStart } from './generation.js';
+import { requestReply, canRegenerate, isGenerationActive, isRealGenerationStart, describeRequestError } from './generation.js';
 import * as tavern from '/script.js';
 
 const KEY = 'personaReply';
@@ -8,7 +8,7 @@ let chatRevision = 0;
 let lastReply = null;
 const context = () => SillyTavern.getContext();
 const settings = () => context().extensionSettings[KEY] ??= { guidance: '', tokens: 300, lore: true };
-const notify = (message, error = false) => globalThis.toastr?.[error ? 'error' : 'info'](message, 'Persona Reply');
+const notify = (message, error = false) => globalThis.toastr?.[error ? 'error' : 'info'](message, 'Persona Reply', { escapeHtml: true, ...(error ? { timeOut: 15000, extendedTimeOut: 15000, closeButton: true } : {}) });
 
 async function getLore(ctx, fields) {
     if (!settings().lore) return '';
@@ -83,7 +83,7 @@ async function generateReply(regenerate = false) {
         input.focus();
     } catch (error) {
         console.error('[Persona Reply]', error);
-        notify(error?.message || 'Generation failed. Check your AI connection and try again.', true);
+        notify(describeRequestError(error), true);
     } finally {
         busy = false;
         button.disabled = false;

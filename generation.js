@@ -11,6 +11,17 @@ export function isRealGenerationStart(type, options, dryRun) {
     return !dryRun && type !== 'quiet';
 }
 
+export function describeRequestError(error) {
+    const details = [];
+    const seen = new Set();
+    for (let current = error; current && !seen.has(current) && seen.size < 8; current = current.cause) {
+        seen.add(current);
+        const message = typeof current === 'string' ? current : current.message || current.error?.message;
+        if (typeof message === 'string' && message.trim() && !details.includes(message.trim())) details.push(message.trim());
+    }
+    return details.join(' → ') || 'Generation failed. Check your AI connection and try again.';
+}
+
 export async function requestReply(ctx, request, tokens, profileId = '') {
     if (!profileId) return ctx.generateRaw({ ...request, responseLength: tokens, trimNames: false });
     const service = ctx.ConnectionManagerRequestService;
