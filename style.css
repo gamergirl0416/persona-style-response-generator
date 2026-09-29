@@ -27,3 +27,7 @@
 .persona-reply-settings label { display: block; margin: 8px 0; }
 .persona-reply-settings textarea { min-height: 80px; }
 .persona-reply-preview { white-space: pre-wrap; text-align: left; overflow-wrap: anywhere; }
+#persona-reply-options { width: min(520px, 92vw); max-height: 85vh; overflow: auto; padding: 20px; border: 1px solid var(--SmartThemeBorderColor, #777); border-radius: 12px; color: var(--SmartThemeBodyColor, #eee); background: var(--SmartThemeBlurTintColor, #222); }
+#persona-reply-options::backdrop { background: #0008; }
+#persona-reply-options textarea { min-height: 120px; width: 100%; }
+.persona-reply-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
