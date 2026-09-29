@@ -25,6 +25,14 @@ export function buildPrompt({ chat, name, fields, notes, lore, guidance, draft, 
     };
 }
 
+export async function countPromptTokens(ctx, text, separateProfile = false) {
+    const measured = await ctx.getTokenCountAsync(text, 0);
+    if (!Number.isFinite(measured) || measured < 0) throw new Error('Unable to measure the prompt token budget.');
+    // Use actual tokenization, not UTF-8 bytes. The active tokenizer may differ
+    // from the saved profile, so leave an extra estimation margin in that case.
+    return Math.ceil(measured * (separateProfile ? 1.1 : 1));
+}
+
 export async function fitPrompt(request, countTokens, totalLimit = 16000) {
     // Reserve the full 4k output allowance even when the user requests less.
     const inputLimit = Math.min(16000, totalLimit) - 4000 - 512;
@@ -48,7 +56,7 @@ export async function fitPrompt(request, countTokens, totalLimit = 16000) {
         trimmed.push(key);
         count = await measure();
     }
-    if (count > inputLimit) throw new Error('The last eight messages, persona, and writing directions exceed the input budget. Shorten the draft/persona or use shorter messages; no recent messages were silently removed.');
+    if (count > inputLimit) throw new Error(`Estimated input: ${count.toLocaleString('en-US')} tokens; available: ${Math.max(0, inputLimit).toLocaleString('en-US')}. This includes the last eight messages, persona, draft, and writing directions—not just the 500-character suggestion. 4,000 tokens are reserved for output and 512 for formatting. Shorten the draft/persona or use shorter messages; no recent messages were silently removed.`);
     return { request: { ...request, prompt: JSON.stringify(data, null, 2) }, trimmed, inputTokens: count };
 }
 

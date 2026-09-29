@@ -1,4 +1,4 @@
-import { buildPrompt, recentMessages, unchanged, fitPrompt } from './prompt.js';
+import { buildPrompt, recentMessages, unchanged, fitPrompt, countPromptTokens } from './prompt.js';
 import { requestReply, canRegenerate, isGenerationActive, isRealGenerationStart, describeRequestError } from './generation.js';
 import * as tavern from '/script.js';
 
@@ -63,12 +63,7 @@ async function generateReply(regenerate = false, suggestion = '') {
         const tokens = Math.min(4000, Math.max(64, Number(settings().tokens) || 4000));
         const activeLimit = ctx.mainApi === 'openai' ? Number(ctx.chatCompletionSettings.openai_max_context) : ctx.maxContext;
         const totalLimit = !profileId && activeLimit > 0 ? Math.min(16000, activeLimit) : 16000;
-        const fitted = await fitPrompt(rawRequest, async text => {
-            const measured = await ctx.getTokenCountAsync(text);
-            // The active tokenizer may belong to a different model. A UTF-8 byte
-            // upper estimate avoids assuming its count fits the profile model.
-            return profileId ? Math.max(measured, new TextEncoder().encode(text).length) : measured;
-        }, totalLimit);
+        const fitted = await fitPrompt(rawRequest, text => countPromptTokens(ctx, text, Boolean(profileId)), totalLimit);
         const request = fitted.request;
         if (fitted.trimmed.length) notify('Supporting context was reduced to fit the token budget. All eight available recent messages and your suggestion were retained.');
         if (isGenerationActive(tavern, context()) || snapshot.revision !== chatRevision || !unchanged(snapshot, context(), input)) return notify('Chat or draft changed. Click again when ready.');
