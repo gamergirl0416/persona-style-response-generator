@@ -13,6 +13,8 @@ No build step, separate server, API key, or npm install is required. This worksp
 
 ## API selection and regeneration (v1.1)
 
+**v1.1.3 troubleshooting:** Saved-profile errors now identify the profile's saved API, model, and preset. Uncheck **Apply saved profile’s sampling preset** to test a basic request with the same saved API/model/key but without the sampling/routing preset. This is an explicit diagnostic option, not an automatic retry or a confirmed fix for every “Not Found” error. It does not change Current connection requests. Re-enable it to restore your preset preferences.
+
 **v1.1.2 diagnostics:** Error notifications now show nested error causes returned by SillyTavern's profile service, rather than just “API request failed.” Errors stay visible longer and are rendered as plain text. This improves diagnosis; it does not claim to fix every OpenRouter free-model failure.
 
 For OpenRouter failures, compare Persona Reply's **Current connection** option with the saved profile while the same free model is selected in the main chat. If Current connection works, check that the saved profile has the correct exact model ID, saved key, and preset. Presets can contain different provider restrictions, quantization filters, and sampling settings than the active chat. If both fail, inspect the detailed error and SillyTavern server log. The profile service may discard HTTP status and provider metadata, so some errors still require server logs. Do not post API keys or full private request bodies when reporting an error.

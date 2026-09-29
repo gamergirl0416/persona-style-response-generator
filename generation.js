@@ -22,15 +22,23 @@ export function describeRequestError(error) {
     return details.join(' → ') || 'Generation failed. Check your AI connection and try again.';
 }
 
-export async function requestReply(ctx, request, tokens, profileId = '') {
+export async function requestReply(ctx, request, tokens, profileId = '', includePreset = true) {
     if (!profileId) return ctx.generateRaw({ ...request, responseLength: tokens, trimNames: false });
     const service = ctx.ConnectionManagerRequestService;
     if (!service?.sendRequest) throw new Error('This SillyTavern version does not support profile requests. Update SillyTavern or select Current connection.');
-    const result = await service.sendRequest(profileId, [
+    try {
+        const result = await service.sendRequest(profileId, [
         { role: 'system', content: request.systemPrompt },
         { role: 'user', content: request.prompt },
-    ], tokens, { stream: false, extractData: true, includePreset: true, includeInstruct: true });
-    return result?.content;
+        ], tokens, { stream: false, extractData: true, includePreset, includeInstruct: true });
+        return result?.content;
+    } catch (error) {
+        // Report only profile identity fields, never keys, URLs, or prompt bodies.
+        let profile;
+        try { profile = service.getProfile?.(profileId); } catch { /* Keep the original error. */ }
+        if (!profile) throw error;
+        throw new Error(`Profile: ${profile.name || profileId}; API: ${profile.api || '(missing)'}; model: ${profile.model || '(missing)'}; preset: ${includePreset ? profile.preset || '(none)' : 'disabled'}`, { cause: error });
+    }
 }
 
 export function canRegenerate(last, ctx, input, revision) {

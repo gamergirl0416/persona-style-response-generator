@@ -67,7 +67,7 @@ async function generateReply(regenerate = false) {
             if (count + tokens + 256 > limit) throw new Error('Context is too large. Reduce saved notes or disable lorebook context in Persona Reply settings.');
         }
         if (isGenerationActive(tavern, context()) || snapshot.revision !== chatRevision || !unchanged(snapshot, context(), input)) return notify('Chat or draft changed. Click again when ready.');
-        const reply = await requestReply(ctx, request, tokens, profileId);
+        const reply = await requestReply(ctx, request, tokens, profileId, settings().includePreset !== false);
         if (typeof reply !== 'string' || !reply.trim()) throw new Error('The AI returned an empty reply.');
         if (snapshot.revision !== chatRevision || !unchanged(snapshot, context(), input)) {
             const preview = document.createElement('pre');
@@ -126,6 +126,8 @@ function initialize() {
             <p>Use ✍ to draft and ↻ for another version. Review and send when ready. Text already in the box guides the draft.</p>
             <label>Response API / connection profile<select class="text_pole" data-setting="profileId"><option value="">Current connection</option></select></label>
             <button type="button" class="menu_button" id="persona-reply-refresh">Refresh profiles</button>
+            <label class="checkbox_label"><input data-setting="includePreset" type="checkbox">Apply saved profile’s sampling preset</label>
+            <p>For a failing saved profile, uncheck this to test a basic request. This omits its sampling and routing preset; the saved API, model, and key are still used. Current connection is unaffected.</p>
             <p>Save an API, model, endpoint, and key in SillyTavern’s Connection Profile panel, then select it here. The main chat connection stays unchanged.</p>
             <label>Writing guidance<textarea class="text_pole" data-setting="guidance" placeholder="e.g. Short replies, casual dialogue, actions in asterisks"></textarea></label>
             <label>Maximum reply tokens<input class="text_pole" data-setting="tokens" type="number" min="64" max="2000" step="1"></label>
@@ -134,7 +136,7 @@ function initialize() {
         </div></div>`;
     for (const field of panel.querySelectorAll('[data-setting]')) {
         const key = field.dataset.setting;
-        if (field.type === 'checkbox') field.checked = settings()[key];
+        if (field.type === 'checkbox') field.checked = key === 'includePreset' ? settings()[key] !== false : settings()[key];
         else field.value = settings()[key] ?? '';
         field.addEventListener('input', () => {
             settings()[key] = field.type === 'checkbox' ? field.checked : field.value;
