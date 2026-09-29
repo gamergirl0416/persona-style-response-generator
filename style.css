@@ -1,0 +1,14 @@
+#persona-reply-button {
+    background: transparent;
+    color: var(--SmartThemeBodyColor);
+    border: 0;
+    padding: 6px;
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+}
+#persona-reply-button:disabled { opacity: .5; cursor: wait; }
+#persona-reply-button:focus-visible { outline: 2px solid currentColor; border-radius: 4px; }
+.persona-reply-settings label { display: block; margin: 8px 0; }
+.persona-reply-settings textarea { min-height: 80px; }
+.persona-reply-preview { white-space: pre-wrap; text-align: left; overflow-wrap: anywhere; }

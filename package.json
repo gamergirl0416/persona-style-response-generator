@@ -1,0 +1,6 @@
+{
+    "name": "sillytavern-persona-reply",
+    "private": true,
+    "type": "module",
+    "scripts": { "test": "node --test", "check": "node --check index.js && node --check prompt.js" }
+}
