@@ -1,14 +1,29 @@
-#persona-reply-button {
+#leftSendForm:has(#persona-reply-tools) {
+    width: auto;
+    flex: 0 0 auto;
+    gap: 4px;
+}
+#persona-reply-tools { display: inline-flex; align-items: center; gap: 2px; flex: 0 0 auto; }
+#persona-reply-tools button {
     background: transparent;
     color: var(--SmartThemeBodyColor);
     border: 0;
-    padding: 6px;
-    font-size: 24px;
+    box-sizing: border-box;
+    width: 26px;
+    height: 28px;
+    min-width: 26px;
+    min-height: 0;
+    margin: 0;
+    padding: 2px;
+    font-size: 18px;
+    border-radius: 4px;
+    box-shadow: none;
+    flex: 0 0 26px;
     cursor: pointer;
     line-height: 1;
 }
-#persona-reply-button:disabled { opacity: .5; cursor: wait; }
-#persona-reply-button:focus-visible { outline: 2px solid currentColor; border-radius: 4px; }
+#persona-reply-tools button:disabled { opacity: .4; cursor: default; }
+#persona-reply-tools button:focus-visible { outline: 2px solid currentColor; }
 .persona-reply-settings label { display: block; margin: 8px 0; }
 .persona-reply-settings textarea { min-height: 80px; }
 .persona-reply-preview { white-space: pre-wrap; text-align: left; overflow-wrap: anywhere; }
