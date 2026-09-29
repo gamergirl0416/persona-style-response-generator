@@ -13,6 +13,8 @@ No build step, separate server, API key, or npm install is required. This worksp
 
 ## API selection and regeneration (v1.1)
 
+**v1.1.1 fix:** Busy detection now reads SillyTavern's live generation status instead of retaining a flag from generation events. Prompt previews and background quiet-generation events no longer invalidate the regenerate button. Legacy streaming checks ignore stopped or aborted streams. Replace the extension files and reload the page to clear the old code's stuck flag.
+
 In **Extensions → Persona Reply → Response API / connection profile**, choose **Current connection** or a saved SillyTavern connection profile such as VoidAI. Create/save the desired API, endpoint, model, and secret selection in SillyTavern's Connection Profile panel first. Click **Refresh profiles** if needed. Saved profiles use SillyTavern's Connection Manager request service without switching the main chat connection. Supported profiles are Chat Completion and Text Completion; other APIs remain usable through Current connection. A recent SillyTavern version with the profile request service and enabled Connection Manager is required for separate profiles. Missing/deleted profiles report an error rather than falling back to a different API.
 
 After generating, click **↻** beside **✍** to request another version using the original draft guidance, the current extension settings, and the selected API. It replaces only the untouched generated draft. Editing the draft disables regeneration; use **✍** to develop your edited text instead. Changing chats, personas, or conversation content invalidates the previous draft. Regeneration makes another model request, so normal provider costs apply and identical replies are possible depending on sampling settings.

@@ -1,3 +1,16 @@
+// Read live state on every click. GENERATION_STARTED also fires for previews and
+// early exits, so it cannot safely be latched until a matching end event.
+export function isGenerationActive(tavern, ctx) {
+    if (typeof tavern.isGenerating === 'function') return Boolean(tavern.isGenerating());
+    const stream = ctx.streamingProcessor;
+    return Boolean(tavern.is_send_press || (stream && !stream.isFinished
+        && !stream.isStopped && !stream.abortController?.signal?.aborted));
+}
+
+export function isRealGenerationStart(type, options, dryRun) {
+    return !dryRun && type !== 'quiet';
+}
+
 export async function requestReply(ctx, request, tokens, profileId = '') {
     if (!profileId) return ctx.generateRaw({ ...request, responseLength: tokens, trimNames: false });
     const service = ctx.ConnectionManagerRequestService;

@@ -1,9 +1,9 @@
 import { buildPrompt, recentMessages, unchanged } from './prompt.js';
-import { requestReply, canRegenerate } from './generation.js';
+import { requestReply, canRegenerate, isGenerationActive, isRealGenerationStart } from './generation.js';
+import * as tavern from '/script.js';
 
 const KEY = 'personaReply';
 let busy = false;
-let nativeGeneration = false;
 let chatRevision = 0;
 let lastReply = null;
 const context = () => SillyTavern.getContext();
@@ -36,7 +36,8 @@ async function generateReply(regenerate = false) {
     const ctx = context();
     const input = document.querySelector('#send_textarea');
     if (!input || !ctx.getCurrentChatId()) return notify('Open a character or group chat first.');
-    if (nativeGeneration || (ctx.streamingProcessor && !ctx.streamingProcessor.isFinished) || input.disabled) return notify('Wait for the current generation to finish.');
+    if (isGenerationActive(tavern, ctx)) return notify('Wait for the current generation to finish.');
+    if (input.disabled) return notify('The reply box is disabled. Enable it before drafting a reply.');
     const profileId = settings().profileId || '';
     if (!profileId && ctx.onlineStatus === 'no_connection') return notify('Connect your AI in SillyTavern first.', true);
     if (regenerate && !canRegenerate(lastReply, ctx, input, chatRevision)) return notify('Generate a reply first. If you edited it, use the pen button to develop your new draft.');
@@ -65,7 +66,7 @@ async function generateReply(regenerate = false) {
             const limit = ctx.mainApi === 'openai' ? Number(ctx.chatCompletionSettings.openai_max_context) : ctx.maxContext;
             if (count + tokens + 256 > limit) throw new Error('Context is too large. Reduce saved notes or disable lorebook context in Persona Reply settings.');
         }
-        if (nativeGeneration || snapshot.revision !== chatRevision || !unchanged(snapshot, context(), input)) return notify('Chat or draft changed. Click again when ready.');
+        if (isGenerationActive(tavern, context()) || snapshot.revision !== chatRevision || !unchanged(snapshot, context(), input)) return notify('Chat or draft changed. Click again when ready.');
         const reply = await requestReply(ctx, request, tokens, profileId);
         if (typeof reply !== 'string' || !reply.trim()) throw new Error('The AI returned an empty reply.');
         if (snapshot.revision !== chatRevision || !unchanged(snapshot, context(), input)) {
@@ -163,9 +164,11 @@ function initialize() {
         if (ctx.eventTypes[name]) ctx.eventSource.on(ctx.eventTypes[name], refreshProfiles);
     }
     ctx.eventSource.on(ctx.eventTypes.CHAT_CHANGED, () => { chatRevision++; lastReply = null; updateRegenerate(); });
-    ctx.eventSource.on(ctx.eventTypes.GENERATION_STARTED, () => { nativeGeneration = true; chatRevision++; updateRegenerate(); });
-    ctx.eventSource.on(ctx.eventTypes.GENERATION_ENDED, () => { nativeGeneration = false; });
-    ctx.eventSource.on(ctx.eventTypes.GENERATION_STOPPED, () => { nativeGeneration = false; });
+    ctx.eventSource.on(ctx.eventTypes.GENERATION_STARTED, (type, options, dryRun) => {
+        if (!isRealGenerationStart(type, options, dryRun)) return;
+        chatRevision++;
+        updateRegenerate();
+    });
 }
 
 jQuery(initialize);
